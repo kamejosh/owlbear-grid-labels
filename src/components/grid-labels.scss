@@ -1,0 +1,89 @@
+@use "../helper/breakpoint";
+
+.wheel-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wheel {
+    --diameter: 50px;
+    position: relative;
+    transform: rotate(var(--rotation));
+    cursor: grab;
+    outline: 5px solid white;
+    border-radius: 50%;
+    width: var(--diameter);
+    height: var(--diameter);
+
+    @include breakpoint.laptop {
+        --diameter: 150px;
+        outline-width: 10px;
+    }
+
+    .spoke {
+        --inset: 10.36px;
+        position: absolute;
+        clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+        cursor: pointer;
+        background-color: white;
+        width: 2px;
+        height: 10px;
+
+        @include breakpoint.laptop {
+            --inset: 22px;
+        }
+
+        &:nth-child(1) {
+            top: -2px;
+            left: 50%;
+            translate: 50%;
+            width: 4px;
+            height: 15px;
+        }
+
+        &:nth-child(2) {
+            top: var(--inset);
+            right: var(--inset);
+            rotate: 45deg;
+        }
+
+        &:nth-child(3) {
+            top: 50%;
+            right: 4px;
+            rotate: 90deg;
+        }
+
+        &:nth-child(4) {
+            right: var(--inset);
+            bottom: var(--inset);
+            rotate: 135deg;
+        }
+
+        &:nth-child(5) {
+            bottom: -2px;
+            left: 50%;
+            rotate: 180deg;
+            width: 4px;
+            height: 15px;
+        }
+
+        &:nth-child(6) {
+            bottom: var(--inset);
+            left: var(--inset);
+            rotate: -135deg;
+        }
+
+        &:nth-child(7) {
+            top: 50%;
+            left: 4px;
+            rotate: -90deg;
+        }
+
+        &:nth-child(8) {
+            top: var(--inset);
+            left: var(--inset);
+            rotate: -45deg;
+        }
+    }
+}
