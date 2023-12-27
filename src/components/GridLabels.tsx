@@ -122,17 +122,18 @@ const Content = () => {
             maps.forEach((map) => {
                 if (map.type === "IMAGE") {
                     const mapImage = map as Image;
-                    if (!x.min || map.position.x < x.min) {
-                        x.min = map.position.x;
+
+                    if (!x.min || map.position.x + mapImage.grid.offset.x < x.min) {
+                        x.min = map.position.x + mapImage.grid.offset.x;
                     }
-                    if (!x.max || map.position.x + mapImage.image.width > x.max) {
-                        x.max = map.position.x + mapImage.image.width;
+                    if (!x.max || map.position.x + mapImage.image.width + mapImage.grid.offset.x > x.max) {
+                        x.max = map.position.x + mapImage.image.width + mapImage.grid.offset.x;
                     }
-                    if (!y.min || map.position.y < y.min) {
-                        y.min = map.position.y;
+                    if (!y.min || map.position.y + mapImage.grid.offset.y < y.min) {
+                        y.min = map.position.y + mapImage.grid.offset.y;
                     }
-                    if (!y.max || map.position.y + mapImage.image.height > y.max) {
-                        y.max = map.position.y + mapImage.image.height;
+                    if (!y.max || map.position.y + mapImage.image.height + mapImage.grid.offset.y > y.max) {
+                        y.max = map.position.y + mapImage.image.height + mapImage.grid.offset.y;
                     }
                 }
             });
@@ -164,7 +165,7 @@ const Content = () => {
                 letter++;
             }
 
-            letter = 0;
+            letter = 1;
             for (let i = y.min!; i < y.max!; i += grid.dpi!) {
                 if (letter % margin === 0) {
                     const labelX = Math.max(x.min! - 2 * grid.dpi!, (viewport.position!.x / viewport.scale!) * -1);
