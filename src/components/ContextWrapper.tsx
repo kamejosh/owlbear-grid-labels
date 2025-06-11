@@ -1,32 +1,29 @@
-import OBR from "@owlbear-rodeo/sdk";
-import { PlayerContext, PlayerContextType } from "../context/PlayerContext.ts";
+import OBR, { Grid } from "@owlbear-rodeo/sdk";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { PluginGate } from "../context/PluginGateContext.tsx";
+import { useGridContext } from "../context/GridContext.tsx";
+import { SceneReadyContext } from "../context/SceneReadyContext.ts";
 
 export const ContextWrapper = (props: PropsWithChildren) => {
-    const [role, setRole] = useState<string | null>(null);
-    const [playerId, setPlayerId] = useState<string | null>(null);
     const [ready, setReady] = useState<boolean>(false);
+    const { isReady } = SceneReadyContext();
+    const gridContext = useGridContext();
 
     useEffect(() => {
         if (OBR.isAvailable) {
             OBR.onReady(async () => {
                 setReady(true);
-                setRole(await OBR.player.getRole());
-                setPlayerId(OBR.player.id);
             });
         }
     }, []);
 
-    const playerContext: PlayerContextType = { role: role, id: playerId };
+    useEffect(() => {
+        if (isReady && ready) {
+            OBR.scene.grid.onChange((grid: Grid) => {
+                gridContext.setGrid(grid);
+            });
+        }
+    }, [ready, isReady]);
 
-    if (ready) {
-        return (
-            <PluginGate>
-                <PlayerContext.Provider value={playerContext}>{props.children}</PlayerContext.Provider>
-            </PluginGate>
-        );
-    } else {
-        return null;
-    }
+    return <PluginGate>{props.children}</PluginGate>;
 };

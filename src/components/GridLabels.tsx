@@ -5,6 +5,7 @@ import "./grid-labels.scss";
 import { SceneReadyContext } from "../context/SceneReadyContext.ts";
 import { gridLabelData } from "../helper/variables.ts";
 import { mod } from "../helper/helpers.ts";
+import { isUndefined, isEqual } from "lodash";
 
 export const GridLabels = () => {
     return (
@@ -32,7 +33,7 @@ const addLabel = async (
     size: number,
     scale: number,
     align: "LEFT" | "CENTER" | "RIGHT",
-    width: number
+    width: number,
 ) => {
     const label = buildText()
         .textType("PLAIN")
@@ -102,7 +103,6 @@ const Content = () => {
             }
         };
         const updateGrid = async () => {
-            await removeGridLabels();
             await addGridLabels();
             if (viewport) {
                 setScale(viewport.scale);
@@ -115,25 +115,26 @@ const Content = () => {
     }, [viewport]);
 
     const addGridLabels = async () => {
-        if (grid && viewport && maps.length > 0) {
+        if (grid && grid.dpi && viewport && maps.length > 0) {
             const x: { min?: number; max?: number } = {};
             const y: { min?: number; max?: number } = {};
 
             maps.forEach((map) => {
                 if (map.type === "IMAGE") {
                     const mapImage = map as Image;
-
-                    if (!x.min || map.position.x + mapImage.grid.offset.x < x.min) {
-                        x.min = map.position.x + mapImage.grid.offset.x;
+                    // @ts-ignore
+                    const scale = mapImage.scale.x * (grid.dpi / mapImage.grid.dpi);
+                    if (isUndefined(x.min) || map.position.x < x.min) {
+                        x.min = map.position.x;
                     }
-                    if (!x.max || map.position.x + mapImage.image.width + mapImage.grid.offset.x > x.max) {
-                        x.max = map.position.x + mapImage.image.width + mapImage.grid.offset.x;
+                    if (!x.max || map.position.x + mapImage.image.width * scale > x.max) {
+                        x.max = map.position.x + mapImage.image.width * scale;
                     }
-                    if (!y.min || map.position.y + mapImage.grid.offset.y < y.min) {
-                        y.min = map.position.y + mapImage.grid.offset.y;
+                    if (isUndefined(y.min) || map.position.y < y.min) {
+                        y.min = map.position.y;
                     }
-                    if (!y.max || map.position.y + mapImage.image.height + mapImage.grid.offset.y > y.max) {
-                        y.max = map.position.y + mapImage.image.height + mapImage.grid.offset.y;
+                    if (!y.max || map.position.y + mapImage.image.height * scale > y.max) {
+                        y.max = map.position.y + mapImage.image.height * scale;
                     }
                 }
             });
@@ -150,16 +151,24 @@ const Content = () => {
             }
             for (let i = x.min!; i < x.max!; i += grid.dpi!) {
                 if (letter % margin === 0) {
+                    const itteration = Math.floor(letter / letters.length);
                     let char = letters[mod(letter, letters.length)];
-                    if (letter > letters.length) {
-                        char = letters[mod(Math.floor(letters.length / letter), letters.length)] + char;
+                    if (itteration >= 1) {
+                        char = letters[mod(itteration - 1, letters.length)] + char;
                     }
 
                     const labelY = Math.max(
                         y.min! - 16 * (1 / viewport.scale!),
-                        (viewport.position!.y / viewport.scale!) * -1
+                        (viewport.position!.y / viewport.scale!) * -1,
                     );
-                    const label = await addLabel({ x: i, y: labelY }, char, 16, 1 / viewport.scale!, "LEFT", grid.dpi!);
+                    const label = await addLabel(
+                        { x: i, y: labelY },
+                        char,
+                        16,
+                        0.8 / viewport.scale!,
+                        "LEFT",
+                        grid.dpi! * 3,
+                    );
                     labels.push(label);
                 }
                 letter++;
@@ -174,14 +183,15 @@ const Content = () => {
                         letter.toString(),
                         16,
                         1 / viewport.scale!,
-                        "RIGHT",
-                        grid.dpi!
+                        "LEFT",
+                        grid.dpi! * 3,
                     );
                     labels.push(label);
                 }
                 letter++;
             }
 
+            await removeGridLabels();
             await OBR.scene.local.addItems(labels);
         }
     };
