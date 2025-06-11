@@ -5,7 +5,7 @@ import "./grid-labels.scss";
 import { SceneReadyContext } from "../context/SceneReadyContext.ts";
 import { gridLabelData } from "../helper/variables.ts";
 import { mod } from "../helper/helpers.ts";
-import { isUndefined, isEqual } from "lodash";
+import { isUndefined } from "lodash";
 
 export const GridLabels = () => {
     return (
